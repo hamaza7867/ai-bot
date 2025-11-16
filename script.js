@@ -5,7 +5,7 @@ let currentFileType = null;
 let conversationHistory = [];
 let isConnected = false;
 let apiKey = '';
-const error = await response.json(); // Tries to read the HTML body as JSON
+
 // List of supported models for the dropdown
 const supportedModels = [
     { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet' },
@@ -125,6 +125,7 @@ function disconnect() {
     addMessage('👋 Hello! I\'m your AI assistant powered by AgentRouter. To get started, please connect your API key.', false, 'C');
 }
 
+// NOTE: 'async' is correctly used here
 async function connect() {
     if (isConnected) {
         disconnect();
@@ -197,6 +198,7 @@ fileInput.addEventListener('change', function() {
     uploadBtn.disabled = !this.files[0];
 });
 
+// NOTE: 'async' is correctly used here
 uploadBtn.addEventListener('click', async function() {
     const file = fileInput.files[0];
     if (!file) return;
@@ -239,6 +241,7 @@ removeBtn.addEventListener('click', removeFile);
 
 // --- Message Sending Logic ---
 
+// NOTE: 'async' is correctly used here
 async function sendMessage() {
     const message = userInput.value.trim();
     if (!message || !isConnected) return;
