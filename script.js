@@ -6,16 +6,8 @@ let conversationHistory = [];
 let isConnected = false;
 let apiKey = '';
 
-// List of supported models for the dropdown
-const supportedModels = [
-    { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet' },
-    { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku' },
-    { value: 'deepseek-r1-0528', label: 'DeepSeek R1' },
-    { value: 'deepseek-v3.1', label: 'DeepSeek v3.1' },
-    { value: 'deepseek-v3.2', label: 'DeepSeek v3.2' },
-    { value: 'glm-4.5', label: 'GLM 4.5' },
-    { value: 'glm-4.6', label: 'GLM 4.6' }
-];
+// HARDCODED MODEL: Using Claude Haiku for low-cost testing, as requested.
+const FIXED_MODEL = 'claude-haiku-4-5-20251001';
 
 // --- DOM Elements ---
 const apiKeyInput = document.getElementById('apiKey');
@@ -32,23 +24,20 @@ const chatMessages = document.getElementById('chatMessages');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
 
+// Permanently disable model selector since we are using a fixed model
+modelSelector.disabled = true;
 
 // --- Initialization and UI Helpers ---
 
-function populateModelSelector() {
-    supportedModels.forEach(model => {
-        const option = document.createElement('option');
-        option.value = model.value;
-        option.textContent = model.label + ' (' + model.value + ')';
-        // Set a default model
-        if (model.value === 'claude-sonnet-4-5-20250929') {
-            option.selected = true;
-        }
-        modelSelector.appendChild(option);
-    });
-}
-
-populateModelSelector(); 
+// NOTE: populateModelSelector is removed as the model is fixed.
+// We just add a single option to show the user what model is active.
+(function initializeModelSelector() {
+    const option = document.createElement('option');
+    option.value = FIXED_MODEL;
+    option.textContent = 'Fixed Model: ' + FIXED_MODEL.split('-')[1].toUpperCase();
+    option.selected = true;
+    modelSelector.appendChild(option);
+})();
 
 // Auto-resize textarea
 userInput.addEventListener('input', function() {
@@ -110,7 +99,7 @@ function disconnect() {
     isConnected = false;
     apiKey = '';
     apiKeyInput.disabled = false;
-    modelSelector.disabled = false;
+    // modelSelector remains disabled
     apiKeyInput.value = '';
     apiStatus.textContent = '⚠️ Not Connected';
     apiStatus.className = 'api-status disconnected';
@@ -122,7 +111,7 @@ function disconnect() {
     removeFile();
     conversationHistory = [];
     chatMessages.innerHTML = '';
-    addMessage('👋 Hello! I\'m your AI assistant powered by AgentRouter. To get started, please connect your API key.', false, 'C');
+    addMessage('👋 Hello! I\'m your AI assistant powered by AgentRouter. Fixed model: ' + FIXED_MODEL.split('-')[1].toUpperCase(), false, 'C');
 }
 
 // NOTE: 'async' is correctly used here
@@ -140,8 +129,6 @@ async function connect() {
 
     // Test the API key
     try {
-        const selectedModel = modelSelector.value;
-        
         const response = await fetch('https://agentrouter.org', {
             method: 'POST',
             headers: {
@@ -150,7 +137,7 @@ async function connect() {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: selectedModel,
+                model: FIXED_MODEL, // HARDCODED MODEL
                 max_tokens: 10,
                 messages: [{ role: 'user', content: 'Test connection' }]
             })
@@ -174,7 +161,7 @@ async function connect() {
         apiStatus.textContent = '✅ Connected';
         apiStatus.className = 'api-status connected';
         apiKeyInput.disabled = true;
-        modelSelector.disabled = true;
+        // modelSelector remains disabled
         connectBtn.textContent = 'Disconnect';
         connectBtn.style.background = '#ef5350';
         fileInput.disabled = false;
@@ -183,7 +170,7 @@ async function connect() {
         userInput.focus();
         
         chatMessages.innerHTML = '';
-        addMessage('✅ API Connection successful. Using model: ' + selectedModel + '. You can now start chatting!', false, 'C');
+        addMessage('✅ API Connection successful. Using fixed model: ' + FIXED_MODEL.split('-')[1].toUpperCase() + '. You can now start chatting!', false, 'C');
 
     } catch (error) {
         showError('Failed to connect to AgentRouter: ' + error.message);
@@ -251,6 +238,7 @@ async function sendMessage() {
     userInput.style.height = 'auto';
     userInput.disabled = true;
     sendBtn.disabled = true;
+    
     // Helper function to show typing indicator
     const loadingMessageDiv = document.createElement('div');
     loadingMessageDiv.className = 'message assistant';
@@ -261,7 +249,6 @@ async function sendMessage() {
 
     try {
         let userMessageContent = [];
-        const selectedModel = modelSelector.value;
 
         // Add file data ONLY if it's the first message since a file was uploaded
         if (currentFileData && conversationHistory.length === 0) {
@@ -301,7 +288,7 @@ async function sendMessage() {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: selectedModel,
+                model: FIXED_MODEL, // HARDCODED MODEL
                 max_tokens: 4096,
                 messages: messages
             })
